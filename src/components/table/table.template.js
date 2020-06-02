@@ -3,7 +3,7 @@ const CODES = {
     Z: 90
 }
 
-export function createTable(rowsCount = 150) {
+export function createTable(rowsCount = 15) {
     const colsCount = CODES.Z - CODES.A + 1
     const rows = []
 
@@ -28,13 +28,15 @@ function createTableHeader(colsCount) {
 }
 
 function crateTableBody(rowsCount, colsCount) {
-    const cols = new Array(colsCount).fill('').map(createCel).join('')
-    const rows = new Array(rowsCount)
-        .fill(cols)
-        .map((cols, index) => createRow(index + 1, cols))
-        .join('')
+    const rows = []
 
-    return rows
+    for (let row = 0; row < rowsCount; row++) {
+        const cells = new Array(colsCount).fill('').map(createCel(row)).join('')
+
+        rows.push(createRow(row + 1, cells))
+    }
+
+    return rows.join(' ')
 }
 
 function createCol(colName, index) {
@@ -42,20 +44,22 @@ function createCol(colName, index) {
         <div 
             class="column" 
             data-type="resizable" 
-            data-col="${createCharFromCharCode(null, index)}${index}">
+            data-col="${index}">
             ${colName}
             <span class="col-resize" data-resize="col"></span>
         </div>`
 }
 
-function createCel(celData, index) {
-    return `
-        <div 
-            class="cell" 
+function createCel(row) {
+    return function c(cellData, col) {
+        return `<div
+            class="cell"
             contenteditable
-            data-col="${createCharFromCharCode(null, index)}${index}">
-            ${celData}
+            data-col="${col}"
+            data-id="${col + 1}:${row + 1}">
+            ${cellData}
         </div>`
+    }
 }
 
 function createRow(index, data) {
