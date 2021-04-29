@@ -7,50 +7,46 @@
     right: 0;
     top: $header-height + $toolbar-height + $formula-height;
     overflow-x: auto;
-    padding-bottom: 50px;
-    height: 75vh;
+    padding-bottom: 4px;
 
-    @include prohibitToSelect();
-
-    .row {
+    & .row {
         display: flex;
         flex-direction: row;
-        min-height: 20px;
+        min-height: $row-height;
         height: $row-height;
     }
 
-    .row-info {
-        display: flex;
-        justify-content: center;
-        align-items: center;
+    & .row-info {
+        @include center();
         min-width: $info-cell-width;
         height: 100%;
         border: 1px solid $border-color;
-        background: #f8f9fa;
+        background-color: #f8f9fa;
         border-top: none;
         position: relative;
+        @include unselectable;
     }
 
-    .row-data {
+    & .row-data {
         display: flex;
-        position: relative;
     }
 
-    .column {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: #f8f9fa;
+    & .column {
+        @include center();
+        background-color: #f8f9fa;
         min-width: 40px;
+        height: 100%;
         width: $cell-width;
         border: 1px solid $border-color;
         border-top: 0;
         border-left: 0;
-        height: 100%;
         position: relative;
+        z-index: 10;
+
+        @include unselectable;
     }
 
-    .cell {
+    & .cell {
         min-width: 40px;
         padding: 5px;
         width: $cell-width;
@@ -61,72 +57,72 @@
         color: #111;
         white-space: nowrap;
         outline: none;
+        position: relative;
 
         &.selected {
             border: none;
             outline: 2px solid #3c74ff;
             z-index: 2;
+            position: relative;
+
+            &::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                right: 0;
+                width: 6px;
+                height: 6px;
+                background-color: #3c74ff;
+                transform: translateX(50%) translateY(50%);
+                cursor: nwse-resize;
+            }
         }
     }
 
     .col-resize,
     .row-resize {
         position: absolute;
-        background-color: $active-cell-color;
         opacity: 0;
-        right: 0;
-        z-index: 1000;
+        z-index: 100000;
+        background-color: blue;
 
+        &::after {
+            position: absolute;
+            content: '';
+            background-color: blue;
+            opacity: 0;
+        }
+
+        &:active::after,
         &:hover {
             opacity: 1 !important;
         }
     }
 
     .col-resize {
-        top: 0;
-        width: 4px;
-        height: inherit;
+        right: 0;
+        height: $row-height;
+        width: 5px;
         cursor: ew-resize;
 
         &::after {
-            content: '';
             top: 0;
-            left: 2px;
-            height: 100vh;
+            right: 1.5px;
             width: 1px;
-            z-index: 110;
-            background-color: $active-cell-color;
-            position: absolute;
-            transform: translateX(-50%);
-            display: none;
-        }
-
-        &:active::after {
-            display: block;
+            height: 100vh;
         }
     }
 
     .row-resize {
-        bottom: 0;
         width: 100%;
-        height: 4px;
+        height: 5px;
         cursor: ns-resize;
+        bottom: -1px;
 
         &::after {
-            content: '';
-            bottom: 2px;
-            left: 0;
+            bottom: 1.5px;
             width: 100vw;
             height: 1px;
-            z-index: 110;
-            background-color: $active-cell-color;
-            position: absolute;
-            transform: translateY(50%);
-            display: none;
-        }
-
-        &:active::after {
-            display: block;
         }
     }
 }

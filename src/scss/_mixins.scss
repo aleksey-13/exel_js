@@ -1,41 +1,45 @@
 @mixin button($color: green) {
-  height: 24px;
-  min-width: 24px;
-  padding: 3px;
-  text-align: center;
-  position: relative;
-  display: inline-block;
-  color: (0, 0, 0, 0.7);
+    height: 24px;
+    min-width: 24px;
+    padding: 3px;
+    text-align: center;
+    position: relative;
+    display: inline-block;
+    color: rgba(0, 0, 0, 0.7);
 
-  & i {
-    font-size: 18px;
-  }
+    & i {
+        font-size: 18px;
+    }
 
-  &:active,
-  &.active {
-    color: $color;
-  }
+    &:active,
+    &.active {
+        color: $color;
+    }
 
-  &:hover {
-    background: #eee;
-    cursor: pointer;
-  }
+    &:hover {
+        background-color: #eee;
+        cursor: pointer;
+    }
 }
 
-@mixin prohibitToSelect() {
-  -moz-user-select: none;
-  -khtml-user-select: none;
-  user-select: none;
-}
-
-@mixin centerElementFlex() {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+@mixin center() {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 @mixin clearList() {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+@mixin unselectable {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Chrome/Safari/Opera */
+    -khtml-user-select: none; /* Konqueror */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently
+                                    not supported by any browser */
 }

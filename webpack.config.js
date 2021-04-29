@@ -1,8 +1,9 @@
-const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const path = require('path')
+const webpack = require('webpack')
 
 const isProd = process.env.NODE_ENV === 'production'
 const isDev = !isProd
@@ -10,19 +11,7 @@ const isDev = !isProd
 const filename = (ext) => (isDev ? `bundle.${ext}` : `bundle.[hash].${ext}`)
 
 const jsLoaders = () => {
-    const loaders = [
-        {
-            loader: 'babel-loader',
-            options: {
-                presets: ['@babel/preset-env'],
-                plugins: ['@babel/plugin-proposal-class-properties']
-            }
-        }
-    ]
-
-    if (isDev) {
-        loaders.push('eslint-loader')
-    }
+    const loaders = ['babel-loader']
 
     return loaders
 }
@@ -30,7 +19,8 @@ const jsLoaders = () => {
 module.exports = {
     context: path.resolve(__dirname, 'src'),
     mode: 'development',
-    entry: ['@babel/polyfill', './index.js'],
+    target: isDev ? 'web' : 'browserslist',
+    entry: ['babel-polyfill', './index.js'],
     output: {
         filename: filename('js'),
         path: path.resolve(__dirname, 'dist')
@@ -44,8 +34,9 @@ module.exports = {
     },
     devtool: isDev ? 'source-map' : false,
     devServer: {
-        port: 3001,
-        hot: isDev
+        port: 3000,
+        hot: isDev,
+        contentBase: '/src/'
     },
     plugins: [
         new HtmlWebpackPlugin({
@@ -66,26 +57,19 @@ module.exports = {
         new CleanWebpackPlugin(),
         new MiniCssExtractPlugin({
             filename: filename('css')
+        }),
+        new webpack.DefinePlugin({
+            'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
         })
     ],
     module: {
         rules: [
             {
                 test: /\.s[ac]ss$/i,
-                use: [
-                    {
-                        loader: MiniCssExtractPlugin.loader,
-                        options: {
-                            hmr: isDev,
-                            reloadAll: true
-                        }
-                    },
-                    'css-loader',
-                    'sass-loader'
-                ]
+                use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader']
             },
             {
-                test: /\.js$/,
+                test: /\.m?js$/,
                 exclude: /node_modules/,
                 use: jsLoaders()
             }

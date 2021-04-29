@@ -3,32 +3,33 @@ export class TableSelection {
 
     constructor() {
         this.group = []
-        this.current = null
     }
 
-    clearSelected() {
+    select($el) {
+        this.clear()
+
+        this.group.push($el)
+        $el.addClass(this.#className).focus()
+    }
+
+    get selectedIds() {
+        return this.group.map(($el) => $el.id())
+    }
+
+    selectGroup($group) {
+        this.clear()
+
+        this.group = [...$group]
+
+        this.group.forEach(($el) => $el.addClass(this.#className))
+    }
+
+    clear() {
         this.group.forEach(($el) => $el.removeClass(this.#className))
         this.group = []
     }
 
-    select($el) {
-        if (this.group.length) {
-            this.clearSelected()
-        }
-
-        this.group.push($el)
-        this.current = $el
-
-        $el.addClass(this.#className).focus()
-    }
-
-    selectGroup($cells) {
-        this.clearSelected()
-
-        this.group = $cells
-
-        this.group.forEach(($el) => {
-            $el.addClass(this.#className)
-        })
+    applyStyle(style) {
+        this.group.forEach(($el) => $el.css(style))
     }
 }

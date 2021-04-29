@@ -1,13 +1,12 @@
 import { capitalize } from '@core/utils'
-
 export class DomListener {
-    constructor($root, listenets = []) {
+    constructor($root, listeners = []) {
         if (!$root) {
-            throw new Error(`No ${$root} proveded for DomListener`)
+            // throw new Error('No $root')
         }
 
         this.$root = $root
-        this.listeners = listenets
+        this.listeners = listeners
     }
 
     initDOMListeners() {
@@ -16,12 +15,10 @@ export class DomListener {
 
             if (!this[method]) {
                 throw new Error(
-                    `Method ${method} is not implemented in 
-                    ${this.name} Component`
+                    `Method ${method} is not implemented in ${this.name} component`
                 )
             }
             this[method] = this[method].bind(this)
-
             this.$root.on(listener, this[method])
         })
     }
@@ -29,11 +26,12 @@ export class DomListener {
     removeDOMListeners() {
         this.listeners.forEach((listener) => {
             const method = getMethodName(listener)
+
             this.$root.off(listener, this[method])
         })
     }
 }
 
 function getMethodName(eventName) {
-    return `on${capitalize(eventName)}`
+    return 'on' + capitalize(eventName)
 }

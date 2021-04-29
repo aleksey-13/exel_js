@@ -1,14 +1,12 @@
 import { ExcelComponent } from '@core/ExcelComponent'
 import { createTable } from './table.template'
-import { resizeHanbler } from './table.resize'
-import {
-    shouldResize,
-    shouldSelected,
-    matrix,
-    nextSelector
-} from './table.functions'
+import { resizeHandler } from './table.resize'
+import { shouldResize, isCell, matrix, nextSelector } from './table.functions'
 import { TableSelection } from './TableSelection'
 import { $ } from '@core/dom'
+import * as actions from '@/store/actions'
+import { defaultStyles } from '@/constans'
+import { parse } from '@core/parse'
 
 export class Table extends ExcelComponent {
     static className = 'excel__table'
@@ -19,10 +17,18 @@ export class Table extends ExcelComponent {
             listeners: ['mousedown', 'keydown', 'input'],
             ...options
         })
+
+        this.current = null
+
+        this.colWidth = 120
+        this.rowHeight = 24
+        this.rowsCount = 5
     }
 
     toHTML() {
-        return createTable()
+        const state = this.store.getState()
+
+        return createTable(this.rowsCount, state)
     }
 
     prepare() {
@@ -32,52 +38,96 @@ export class Table extends ExcelComponent {
     init() {
         super.init()
 
-        this.selectCell(this.$root.find('[data-id="1:1"]'))
+        const $cell = this.$root.find('[data-id="0:0"]')
+        this.selectCell($cell)
+        this.current = $cell
 
-        this.$on('formula:input', (text) => this.selection.current.text(text))
-        this.$on('formula:blur', () => this.selection.current.focus())
+        this.$on('formula:input', (value) => {
+            this.current.attr('data-value', value).text(parse(value))
+            this.updateTextInStore(value)
+        })
+        this.$on('formula:unfocus', () => this.current.focus())
+        this.$on('toolbar:applyStyle', (value) => {
+            this.selection.applyStyle(value)
+            this.$dispatch(
+                actions.applyStyleAction({
+                    value,
+                    ids: this.selection.selectedIds
+                })
+            )
+        })
+    }
+
+    selectCell($cell) {
+        this.selection.select($cell)
+        this.$emit('table:select', $cell)
+        const styles = $cell.getStyles(Object.keys(defaultStyles))
+        this.$dispatch(actions.changeStylesAction(styles))
+    }
+
+    resizeTable(event) {
+        resizeHandler(this.$root, event).then((data) => {
+            this.$dispatch(actions.tableResizeAction(data))
+        })
     }
 
     onMousedown(event) {
         if (shouldResize(event)) {
-            resizeHanbler(event, this.$root)
-        } else if (shouldSelected(event)) {
-            const $cell = $(event.target)
+            this.resizeTable(event)
+        } else if (isCell(event)) {
+            const $target = $(event.target)
+
             if (event.shiftKey) {
-                const $cells = matrix($cell, this.selection.current).map((id) =>
+                const ids = matrix(this.current, $target)
+
+                const $cells = ids.map((id) =>
                     this.$root.find(`[data-id="${id}"]`)
                 )
 
                 this.selection.selectGroup($cells)
             } else {
-                this.selectCell($cell)
+                this.selectCell($target)
+
+                this.current = $target
             }
         }
     }
 
     onKeydown(event) {
-        const keys = [9, 13, 37, 38, 39, 40]
-        const { keyCode } = event
+        const keys = [
+            'Enter',
+            'Tab',
+            'ArrowDown',
+            'ArrowUp',
+            'ArrowRight',
+            'ArrowLeft'
+        ]
 
-        if (keys.includes(keyCode) && !event.shiftKey) {
+        const { key } = event
+
+        if (keys.includes(key) && !event.shiftKey) {
             event.preventDefault()
 
-            const $next = this.$root.find(
-                nextSelector(keyCode, this.selection.current)
-            )
+            const id = this.current.id(true)
 
-            if ($next.isAttend()) {
-                this.selectCell($next)
-            }
+            const $nextCell = this.$root.find(nextSelector(key, id))
+            this.current = $nextCell
+
+            this.selectCell($nextCell)
+        } else {
         }
     }
 
-    onInput(event) {
-        this.$emit('table:input', $(event.target).text())
+    updateTextInStore(text) {
+        this.$dispatch(
+            actions.changeTextAction({
+                value: text,
+                id: this.current.id()
+            })
+        )
     }
 
-    selectCell(cell) {
-        this.selection.select(cell)
-        this.$emit('table:select', this.selection.current.text())
+    onInput(event) {
+        this.updateTextInStore($(event.target).text())
     }
 }

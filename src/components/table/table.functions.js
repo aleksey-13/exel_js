@@ -4,42 +4,43 @@ export function shouldResize(event) {
     return event.target.dataset.resize
 }
 
-export function shouldSelected(event) {
-    return event.target.dataset.id
+export function isCell(event) {
+    return event.target.dataset.type === 'cell'
 }
 
-export function matrix($target, $current) {
-    const target = $target.id(true)
+export function matrix($current, $target) {
     const current = $current.id(true)
-    const cols = range(current.col, target.col)
-    const rows = range(current.row, target.row)
+    const target = $target.id(true)
 
-    return cols.reduce((acc, col) => {
-        rows.forEach((row) => acc.push(`${col}:${row}`))
+    const colIds = range(current.col, target.col)
+    const rowIds = range(current.row, target.row)
+
+    return colIds.reduce((acc, curr) => {
+        rowIds.forEach((row) => acc.push(`${row}:${curr}`))
+
         return acc
     }, [])
 }
 
-export function nextSelector(keyCode, $current) {
-    const current = $current.id(true)
-    const next = { ...current }
+export function nextSelector(key, { col, row }) {
+    const MIN_VALUE = 0
+    switch (key) {
+        case 'ArrowDown':
+        case 'Enter':
+            row++
+            break
+        case 'ArrowRight':
+        case 'Tab':
+            col++
+            break
+        case 'ArrowUp':
+            row = row - 1 < MIN_VALUE ? MIN_VALUE : --row
+            break
 
-    switch (keyCode) {
-        case 9:
-        case 39:
-            next.col = current.col + 1
-            break
-        case 13:
-        case 40:
-            next.row = current.row + 1
-            break
-        case 37:
-            next.col = current.col - 1
-            break
-        case 38:
-            next.row = current.row - 1
+        case 'ArrowLeft':
+            col = col - 1 < MIN_VALUE ? MIN_VALUE : --col
             break
     }
 
-    return `[data-id="${next.col}:${next.row}"]`
+    return `[data-id="${row}:${col}"]`
 }

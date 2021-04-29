@@ -10,34 +10,14 @@ class Dom {
         if (typeof html === 'string') {
             this.$el.innerHTML = html
             return this
-        } else {
-            return this.$el.outerHTML.trim()
         }
-    }
 
-    text(text) {
-        if (typeof text === 'string') {
-            this.$el.textContent = text
-            return this
-        } else {
-            if (this.$el.tagName.toLowerCase() === 'input') {
-                return this.$el.value.trim()
-            }
-            return this.$el.textContent.trim()
-        }
+        return this.$el.outerHTML.trim()
     }
 
     clear() {
         this.html('')
         return this
-    }
-
-    on(eventType, callback) {
-        this.$el.addEventListener(eventType, callback)
-    }
-
-    off(eventType, callback) {
-        this.$el.removeEventListener(eventType, callback)
     }
 
     append(node) {
@@ -54,8 +34,14 @@ class Dom {
         return this
     }
 
-    get data() {
-        return this.$el.dataset
+    on(eventType, callback) {
+        this.$el.addEventListener(eventType, callback)
+        return this
+    }
+
+    off(eventType, callback) {
+        this.$el.removeEventListener(eventType, callback)
+        return this
     }
 
     closest(selector) {
@@ -66,54 +52,81 @@ class Dom {
         return this.$el.getBoundingClientRect()
     }
 
-    find(selector) {
-        return $(this.$el.querySelector(selector))
+    get data() {
+        return this.$el.dataset
+    }
+
+    css(styles = {}) {
+        Object.keys(styles).forEach(
+            (key) => (this.$el.style[key] = styles[key])
+        )
+
+        return this
     }
 
     findAll(selector) {
         return this.$el.querySelectorAll(selector)
     }
 
-    css(styles = {}) {
-        Object.keys(styles).forEach(
-            (styleName) => (this.$el.style[styleName] = styles[styleName])
-        )
-        return this
+    find(selector) {
+        return $(this.$el.querySelector(selector))
     }
 
     addClass(className) {
         this.$el.classList.add(className)
+
         return this
     }
 
     removeClass(className) {
         this.$el.classList.remove(className)
+
         return this
     }
 
     id(parse) {
         if (parse) {
-            const parsed = this.id().split(':')
-            return {
-                row: +parsed[1],
-                col: +parsed[0]
-            }
+            const [row, col] = this.id().split(':')
+            return { row: +row, col: +col }
         }
-        return this.data.id
-    }
-
-    isAttend() {
-        return this.$el ? true : false
+        return this.$el.dataset.id
     }
 
     focus() {
         this.$el.focus()
+
         return this
     }
 
-    blur() {
-        this.$el.blur()
-        return this
+    text(text) {
+        if (typeof text !== 'undefined') {
+            this.$el.textContent = text
+            return this
+        }
+
+        if (this.$el.tagName.toLowerCase() === 'input') {
+            return this.$el.value.trim()
+        }
+
+        return this.$el.textContent.trim()
+    }
+
+    attr(name, value) {
+        if (value) {
+            this.$el.setAttribute(name, value)
+
+            return this
+        }
+
+        return this.$el.getAttribute(name)
+    }
+
+    getStyles(styles = []) {
+        return styles.reduce((res, s) => {
+            res[s] = this.$el.style[s]
+
+            return res
+        }, {})
     }
 }
 

@@ -1,21 +1,21 @@
-export class Emiter {
+export class Emitter {
     constructor() {
         this.listeners = {}
     }
 
     emit(event, ...args) {
-        if (Array.isArray(this.listeners[event])) {
-            this.listeners[event].forEach((listener) => {
-                listener(...args)
-            })
-
-            return true
+        if (!Array.isArray(this.listeners[event])) {
+            return false
         }
-        return false
+
+        this.listeners[event].forEach((listener) => listener(...args))
+
+        return true
     }
 
     subscribe(event, fn) {
         this.listeners[event] = this.listeners[event] || []
+
         this.listeners[event].push(fn)
 
         return () => {

@@ -7,46 +7,47 @@ export class Formula extends ExcelComponent {
     constructor($root, options) {
         super($root, {
             name: 'Formula',
-            listeners: ['input', 'keydown'],
+            listeners: ['input', 'click', 'keydown'],
+            subscribe: ['currentText'],
             ...options
-        })
-    }
-
-    init() {
-        super.init()
-        this.$formula = this.$root.find('#formula')
-
-        this.$on('table:select', (text) => {
-            this.$formula.text(text)
-        })
-
-        this.$on('table:input', (text) => {
-            this.$formula.text(text)
         })
     }
 
     toHTML() {
         return `
             <div class="info">fx</div>
-            <div id="formula" class="input" contenteditable="true" spellcheck="false"></div>
+            <div id="formula" class="input" contenteditable spellcheck="false"></div>
         `
     }
 
-    onInput(e) {
-        this.$emit('formula:input', $(e.target).text())
+    init() {
+        super.init()
+
+        this.$formula = this.$root.find('#formula')
+
+        this.$on('table:select', ($cell) => {
+            this.$formula.text($cell.data.value)
+        })
+    }
+
+    storeChanged(changes) {
+        this.$formula.text(changes.currentText)
+    }
+
+    onInput(event) {
+        this.$emit('formula:input', $(event.target).text())
     }
 
     onKeydown(event) {
-        const keys = [9, 13]
-        const { keyCode } = event
+        const keys = ['Enter', 'Tab']
 
-        if (keys.includes(keyCode)) {
+        if (keys.includes(event.key)) {
             event.preventDefault()
-
-            this.$emit('formula:blur')
-
-            this.$formula.text('')
-            this.$formula.blur()
+            this.$emit('formula:unfocus')
         }
+    }
+
+    onClick(event) {
+        this.$on('table:cell', (data) => (event.target.textContent = data))
     }
 }

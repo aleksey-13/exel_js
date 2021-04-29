@@ -1,23 +1,31 @@
 import { $ } from '@core/dom'
-import { Emiter } from '@core/Emiter'
+import { Emitter } from '@core/Emitter'
+import { StoreSubscriber } from '@core/StoreSubscriber'
+import { updateDateAction } from '@/store/actions'
+import { preventDefault } from '@core/utils'
 
 export class Excel {
-    constructor(selector, options) {
-        const { components = [] } = options
-
-        this.$el = $(selector)
-        this.components = components
-        this.emiter = new Emiter()
+    constructor(options) {
+        this.components = options.components || []
+        this.store = options.store
+        this.emitter = new Emitter()
+        this.subscriber = new StoreSubscriber(this.store)
     }
 
     getRoot() {
         const $root = $.create('div', 'excel')
-
-        const componentOptions = { emiter: this.emiter }
+        const componentOptions = {
+            emitter: this.emitter,
+            store: this.store
+        }
 
         this.components = this.components.map((Component) => {
             const $el = $.create('div', Component.className)
             const component = new Component($el, componentOptions)
+            if (component.name === 'Formula') {
+                window.formula = component
+            }
+
             $el.html(component.toHTML())
             $root.append($el)
 
@@ -27,17 +35,19 @@ export class Excel {
         return $root
     }
 
-    render() {
-        this.$el.append(this.getRoot())
+    init() {
+        if (process.env.NODE_ENV === 'production') {
+            document.addEventListener('contextmenu', preventDefault)
+        }
 
+        this.store.dispatch(updateDateAction())
+        this.subscriber.subscribeComponents(this.components)
         this.components.forEach((component) => component.init())
     }
 
-    remove() {
-        this.components.forEach((component) => component.destroy())
-    }
-
     destroy() {
+        this.subscriber.unsubscribeFromStore()
         this.components.forEach((component) => component.destroy())
+        document.removeEventListener('contextmenu', preventDefault)
     }
 }
